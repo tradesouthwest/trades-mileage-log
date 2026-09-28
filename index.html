@@ -35,5 +35,23 @@
   <ul id="trip-list"></ul>
 
   <script src="app.js"></script>
+  
+<br><hr>
+  
+  <div id="mileage-summary-card">
+  <h3>Mileage Totals by Category</h3>
+  <ul id="summary-list">
+    <!-- Category totals will populate here -->
+  </ul>
+  <button id="refresh-summary-btn">Recalculate Summary</button>
+</div>
+
+<script>
+  // Bind click event to recalculate
+  document.getElementById('refresh-summary-btn').addEventListener('click', renderMileageSummary);
+
+  // Initial load
+  document.addEventListener('DOMContentLoaded', renderMileageSummary);
+</script>
 </body>
 </html>
