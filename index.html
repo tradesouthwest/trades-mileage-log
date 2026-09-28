@@ -2,14 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Offline Mileage Logger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mileage Tracker</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0070f3">
 </head>
 <body>
 
   <h2>Log Mileage</h2>
   <form id="mileage-form">
-    <label>
-      Category:
+    <label>Category:
       <select id="category" required>
         <option value="DoorDash">DoorDash</option>
         <option value="Home Business">Home Business</option>
@@ -22,36 +25,39 @@
     <label>Notes: <input type="text" id="notes"></label><br><br>
 
     <button type="submit">Save Trip</button>
-    <button id="export-csv-btn">Export Trips to CSV</button>
-
-<script>
-  document.getElementById('export-csv-btn').addEventListener('click', exportTripsToCSV);
-</script>
   </form>
+
+  <hr>
+
+  <h2>Category Summary</h2>
+  <ul id="summary-list"></ul>
+
+  <hr>
+
+  <h2>Actions</h2>
+  <button id="export-csv-btn">Export Trips to CSV</button>
 
   <hr>
 
   <h2>Logged Trips</h2>
   <ul id="trip-list"></ul>
 
+  <!-- 1. Base Database Operations (IndexedDB setup) -->
+  <script src="db.js"></script>
+
+  <!-- 2. Main App Logic & UI Event Handlers -->
   <script src="app.js"></script>
-  
-<br><hr>
-  
-  <div id="mileage-summary-card">
-  <h3>Mileage Totals by Category</h3>
-  <ul id="summary-list">
-    <!-- Category totals will populate here -->
-  </ul>
-  <button id="refresh-summary-btn">Recalculate Summary</button>
-</div>
 
-<script>
-  // Bind click event to recalculate
-  document.getElementById('refresh-summary-btn').addEventListener('click', renderMileageSummary);
+  <!-- 3. Category Analytics & Aggregation -->
+  <script src="analytics.js"></script>
 
-  // Initial load
-  document.addEventListener('DOMContentLoaded', renderMileageSummary);
-</script>
+  <!-- 4. CSV Export Utilities -->
+  <script src="export.js"></script>
+
+  <!-- 5. Bind Button Click Events -->
+  <script>
+    document.getElementById('export-csv-btn').addEventListener('click', exportTripsToCSV);
+  </script>
+
 </body>
 </html>
