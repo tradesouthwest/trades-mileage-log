@@ -22,6 +22,11 @@
     <label>Notes: <input type="text" id="notes"></label><br><br>
 
     <button type="submit">Save Trip</button>
+    <button id="export-csv-btn">Export Trips to CSV</button>
+
+<script>
+  document.getElementById('export-csv-btn').addEventListener('click', exportTripsToCSV);
+</script>
   </form>
 
   <hr>
