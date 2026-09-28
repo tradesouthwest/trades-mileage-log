@@ -2,25 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mileage Tracker</title>
-  
-  <!-- Link the Web App Manifest -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0070f3">
+  <title>Offline Mileage Logger</title>
 </head>
 <body>
-  <h1>Mileage Tracker</h1>
 
-  <script>
-    // Register Service Worker if supported by the browser
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then((reg) => console.log('Service Worker registered successfully.', reg))
-          .catch((err) => console.error('Service Worker registration failed:', err));
-      });
-    }
-  </script>
+  <h2>Log Mileage</h2>
+  <form id="mileage-form">
+    <label>
+      Category:
+      <select id="category" required>
+        <option value="DoorDash">DoorDash</option>
+        <option value="Home Business">Home Business</option>
+        <option value="Personal">Personal</option>
+      </select>
+    </label><br><br>
+
+    <label>Start Odometer: <input type="number" id="start-odo" step="0.1" required></label><br><br>
+    <label>End Odometer: <input type="number" id="end-odo" step="0.1" required></label><br><br>
+    <label>Notes: <input type="text" id="notes"></label><br><br>
+
+    <button type="submit">Save Trip</button>
+  </form>
+
+  <hr>
+
+  <h2>Logged Trips</h2>
+  <ul id="trip-list"></ul>
+
+  <script src="app.js"></script>
 </body>
 </html>
