@@ -1,17 +1,12 @@
-// Function to escape string values containing commas, quotes, or newlines
 function escapeCSVField(value) {
   if (value === null || value === undefined) return '""';
   const stringValue = String(value);
-  // If the field contains quotes, escape them by doubling them up (" -> "")
   const escaped = stringValue.replace(/"/g, '""');
-  // Wrap field in double quotes
   return `"${escaped}"`;
 }
 
-// Main CSV Export Function
 async function exportTripsToCSV() {
   try {
-    // 1. Fetch all records from IndexedDB
     const trips = await getAllTrips();
 
     if (!trips || trips.length === 0) {
@@ -19,7 +14,6 @@ async function exportTripsToCSV() {
       return;
     }
 
-    // 2. Define CSV Headers
     const headers = [
       'ID',
       'Date',
@@ -30,13 +24,11 @@ async function exportTripsToCSV() {
       'Notes'
     ];
 
-    // Build the CSV string rows
-    const csvRows = [];
-    csvRows.push(headers.join(',')); // Add header row
+    const csvRows = [headers.join(',')];
 
     trips.forEach((trip) => {
-      const formattedDate = new Date(trip.date).toISOString().split('T')[0]; // YYYY-MM-DD
-      
+      const formattedDate = trip.date ? new Date(trip.date).toISOString().split('T')[0] : 'N/A';
+
       const row = [
         escapeCSVField(trip.id),
         escapeCSVField(formattedDate),
@@ -50,24 +42,17 @@ async function exportTripsToCSV() {
       csvRows.push(row.join(','));
     });
 
-    const csvContent = csvRows.join('\r\n'); // Use standard RFC 4180 line endings
-
-    // 3. Create a Blob and trigger browser download
+    const csvContent = csvRows.join('\r\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    
-    // Create a temporary <a> element to programmatically click
+
     const downloadLink = document.createElement('a');
     downloadLink.href = url;
-    
-    // Generate filename with current date (e.g., mileage_export_2026-09-28.csv)
     const today = new Date().toISOString().split('T')[0];
     downloadLink.setAttribute('download', `mileage_export_${today}.csv`);
-    
+
     document.body.appendChild(downloadLink);
     downloadLink.click();
-    
-    // Cleanup temporary DOM elements and Object URL memory
     document.body.removeChild(downloadLink);
     URL.revokeObjectURL(url);
 

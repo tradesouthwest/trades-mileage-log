@@ -5,284 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mileage Tracker</title>
   
+  <!-- Web App Manifest & Mobile Meta -->
   <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
   <meta name="theme-color" content="#0070f3">
-  <style>/* ==========================================================================
-   1. Base Setup & Mobile Optimizations
-   ========================================================================== */
-:root {
-  --primary: #0070f3;
-  --primary-hover: #0051a8;
-  --bg-color: #f4f6f8;
-  --card-bg: #ffffff;
-  --text-main: #1a202c;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
-  --radius: 10px;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-
-  /* Category Badge Colors */
-  --cat-doordash: #ff3008;
-  --cat-business: #10b981;
-  --cat-personal: #6366f1;
-  --cat-default: #64748b;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-main);
-  line-height: 1.5;
-  padding: 16px;
-  max-width: 600px; /* Constrain max width for desktop viewing */
-  margin: 0 auto;
-  
-  /* Prevent blue highlight flash on mobile touch */
-  -webkit-tap-highlight-color: transparent;
-  /* Prevent unwanted text selection while tapping buttons */
-  -webkit-touch-callout: none;
-}
-
-/* ==========================================================================
-   2. Typography & Header
-   ========================================================================== */
-h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 16px;
-  text-align: center;
-}
-
-h2 {
-  font-size: 1.15rem;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: var(--text-main);
-}
-
-/* ==========================================================================
-   3. Card Containers & Forms
-   ========================================================================== */
-.card {
-  background: var(--card-bg);
-  border-radius: var(--radius);
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border-color);
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.form-row {
-  display: flex;
-  gap: 12px;
-}
-
-.form-row .form-group {
-  flex: 1;
-}
-
-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-input, select {
-  width: 100%;
-  padding: 12px;
-  font-size: 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background-color: #fff;
-  color: var(--text-main);
-  transition: border-color 0.2s ease;
-  
-  /* Increase touch area on mobile */
-  min-height: 44px;
-}
-
-input:focus, select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.15);
-}
-
-/* ==========================================================================
-   4. Buttons & Interactive Controls
-   ========================================================================== */
-button, .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 46px;
-  padding: 12px 16px;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #ffffff;
-  background-color: var(--primary);
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-button:hover, .btn:hover {
-  background-color: var(--primary-hover);
-}
-
-button.btn-secondary {
-  background-color: #ffffff;
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
-}
-
-button.btn-secondary:hover {
-  background-color: #f8fafc;
-}
-
-/* ==========================================================================
-   5. Lists & Data Views
-   ========================================================================== */
-ul {
-  list-style: none;
-}
-
-/* Mileage Log Items */
-.trip-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.trip-item:last-child {
-  border-bottom: none;
-}
-
-.trip-details {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.trip-category-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #fff;
-  border-radius: 12px;
-  text-transform: uppercase;
-  width: fit-content;
-  background-color: var(--cat-default);
-}
-
-/* Dynamic category colors via attribute or class */
-.badge-doordash { background-color: var(--cat-doordash); }
-.badge-home-business { background-color: var(--cat-business); }
-.badge-personal { background-color: var(--cat-personal); }
-
-.trip-miles {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.trip-meta {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-/* Summary List Card */
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px dashed var(--border-color);
-}
-
-.summary-item:last-child {
-  border-bottom: none;
-  font-weight: 700;
-  font-size: 1.05rem;
-  padding-top: 12px;
-  margin-top: 4px;
-}
-</style>
 </head>
 <body>
 
-  <h2>Log Mileage</h2>
-  <form id="mileage-form">
-    <label>Category:
-      <select id="category" required>
-        <option value="DoorDash">DoorDash</option>
-        <option value="Home Business">Home Business</option>
-        <option value="Personal">Personal</option>
-      </select>
-    </label><br><br>
+  <h1>Mileage Tracker</h1>
 
-    <label>Start Odometer: <input type="number" id="start-odo" step="0.1" required></label><br><br>
-    <label>End Odometer: <input type="number" id="end-odo" step="0.1" required></label><br><br>
-    <label>Notes: <input type="text" id="notes"></label><br><br>
+  <!-- 1. Trip Input Form -->
+  <section class="card">
+    <h2>Log New Trip</h2>
+    <form id="mileage-form">
+      <div class="form-group">
+        <label for="category">Category</label>
+        <select id="category" required>
+          <option value="DoorDash">DoorDash</option>
+          <option value="Home Business">Home Business</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
 
-    <button type="submit">Save Trip</button>
-  </form>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="start-odo">Start Odo</label>
+          <input type="number" id="start-odo" step="0.1" required placeholder="0.0">
+        </div>
+        <div class="form-group">
+          <label for="end-odo">End Odo</label>
+          <input type="number" id="end-odo" step="0.1" required placeholder="0.0">
+        </div>
+      </div>
 
-  <hr>
+      <div class="form-group">
+        <label for="notes">Notes</label>
+        <input type="text" id="notes" placeholder="Optional notes (time)">
+      </div>
 
-  <h2>Category Summary</h2>
-  <ul id="summary-list"></ul>
+      <button type="submit">Save Trip</button>
+    </form>
+  </section>
 
-  <hr>
+  <!-- 2. Dynamic Summary Card -->
+  <section class="card">
+    <h2>Category Totals</h2>
+    <ul id="summary-list"></ul>
+  </section>
 
-  <h2>Actions</h2>
-  <button id="export-csv-btn">Export Trips to CSV</button>
+  <!-- 3. Actions & Management -->
+  <section class="card">
+    <h2>Data Management</h2>
+    <div style="display: flex; gap: 10px;">
+      <button id="export-csv-btn" class="btn-secondary" type="button">Export CSV</button>
+      <button id="clear-all-btn" class="btn-danger" type="button">Clear All Trips</button>
+    </div>
+  </section>
 
-  <hr>
+  <!-- 4. Logged Trip History -->
+  <section class="card">
+    <h2>Logged Trips</h2>
+    <ul id="trip-list"></ul>
+  </section>
 
-  <h2>Logged Trips</h2>
-  <ul id="trip-list"></ul>
-
-  <!-- 1. Base Database Operations (IndexedDB setup) -->
-  <script src="db.js"></script>
-
-  <!-- 2. Main App Logic & UI Event Handlers -->
-  <script src="app.js"></script>
-
-  <!-- 3. Category Analytics & Aggregation -->
-  <script src="analytics.js"></script>
-
-  <!-- 4. CSV Export Utilities -->
-  <script src="export.js"></script>
-
-  <!-- 5. Bind Button Click Events -->
+  <!-- Service Worker Registration -->
   <script>
-    document.getElementById('export-csv-btn').addEventListener('click', exportTripsToCSV);
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('Service Worker registered successfully.', reg))
+          .catch((err) => console.error('Service Worker registration failed:', err));
+      });
+    }
   </script>
 
+  <!-- Application Modules (Loaded in Strict Sequential Order) -->
+  <script src="db.js"></script>
+  <script src="analytics.js"></script>
+  <script src="export.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

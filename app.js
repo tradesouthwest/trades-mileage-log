@@ -1,107 +1,134 @@
-/* 
-import { renderMileageSummary } from './analytics.js';
-import { exportTripsToCSV } from './export.js'; */
+// ==========================================================================
+// 1. UI Rendering Functions
+// ==========================================================================
 
-// 1. Initialize IndexedDB Database
-const DB_NAME = 'MileageTrackerDB';
-const DB_VERSION = 1;
-const STORE_NAME = 'trips';
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    // Runs only when database is created or version increases
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        // Create store with auto-incrementing primary key 'id'
-        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-        // Create an index for filtering/sorting by category
-        store.createIndex('category', 'category', { unique: false });
-      }
-    };
-
-    request.onsuccess = (event) => resolve(event.target.result);
-    request.onerror = (event) => reject('Database error: ' + event.target.error);
-  });
-}
-
-// 2. Add a new trip record
-async function saveTrip(category, startOdo, endOdo, notes) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
-
-    const tripData = {
-      category: category,
-      startOdometer: Number(startOdo),
-      endOdometer: Number(endOdo),
-      calculatedMiles: Number(endOdo) - Number(startOdo),
-      notes: notes,
-      date: new Date().toISOString()
-    };
-
-    const request = store.add(tripData);
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = (e) => reject('Failed to save trip: ' + e.target.error);
-  });
-}
-
-// 3. Fetch all saved trips
-async function getAllTrips() {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.getAll();
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = (e) => reject('Failed to retrieve trips: ' + e.target.error);
-  });
-}
-
-// 4. UI Handler: Render stored trips to DOM
+// Render stored trips list from IndexedDB
 async function renderTrips() {
   const listElement = document.getElementById('trip-list');
-  listElement.innerHTML = ''; // Clear existing list
+  if (!listElement) return;
+
+  listElement.innerHTML = ''; // Fresh reset of DOM container
 
   const trips = await getAllTrips();
 
-  if (trips.length === 0) {
-    listElement.innerHTML = '<li>No trips logged yet.</li>';
+  if (!trips || trips.length === 0) {
+    listElement.innerHTML = '<li class="trip-item">No trips logged yet.</li>';
     return;
   }
 
-  // Render trips in reverse chronological order
-  trips.reverse().forEach((trip) => {
+  // Clone array before reversing so original indexedDB array order remains intact
+  const sortedTrips = [...trips].reverse();
+
+  sortedTrips.forEach((trip) => {
     const li = document.createElement('li');
-    const dateFormatted = new Date(trip.date).toLocaleDateString();
-    
-    li.textContent = `[${dateFormatted}] ${trip.category}: ${trip.calculatedMiles} mi ` +
-                     `(${trip.startOdometer} → ${trip.endOdometer}) - ${trip.notes}`;
+    li.className = 'trip-item';
+
+    const formattedDate = trip.date ? new Date(trip.date).toLocaleDateString() : 'N/A';
+    const badgeClass = `badge-${trip.category.toLowerCase().replace(/\s+/g, '-')}`;
+
+    li.innerHTML = `
+      <div class="trip-details">
+        <span class="trip-category-badge ${badgeClass}">${trip.category}</span>
+        <div class="trip-miles">${trip.calculatedMiles.toFixed(1)} mi</div>
+        <div class="trip-meta">${formattedDate} | Odo: ${trip.startOdometer} → ${trip.endOdometer}</div>
+        ${trip.notes ? `<div class="trip-meta"><em>${trip.notes}</em></div>` : ''}
+      </div>
+      <button class="btn-delete-single" data-id="${trip.id}" type="button">Delete</button>
+    `;
+
     listElement.appendChild(li);
   });
 }
 
-// 5. Event Listeners for HTML Form
-document.addEventListener('DOMContentLoaded', () => {
-  renderTrips(); // Render initial list on page load
+// Auto-populate Start Odometer input from the last recorded trip's End Odometer
+async function updateNextStartOdometer() {
+  const startOdoInput = document.getElementById('start-odo');
+  if (!startOdoInput) return;
 
+  try {
+    const lastTrip = await getLastTrip();
+    if (lastTrip && lastTrip.endOdometer) {
+      startOdoInput.value = lastTrip.endOdometer;
+    } else {
+      startOdoInput.value = ''; // Reset to empty if DB has no entries
+    }
+  } catch (error) {
+    console.error('Error pre-filling odometer:', error);
+  }
+}
+
+// Master refresh for UI components (List + Category Summary)
+async function refreshAppUI() {
+  await renderTrips();
+  if (typeof renderMileageSummary === 'function') {
+    await renderMileageSummary();
+  }
+}
+
+// ==========================================================================
+// 2. Application Event Listeners (Bound once on DOM load)
+// ==========================================================================
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Initial load: render list, totals summary, and set start odometer
+  await refreshAppUI();
+  await updateNextStartOdometer();
+
+  // 1. Form Submission Handler
   const form = document.getElementById('mileage-form');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    const category = document.getElementById('category').value;
-    const startOdo = document.getElementById('start-odo').value;
-    const endOdo = document.getElementById('end-odo').value;
-    const notes = document.getElementById('notes').value;
+      const category = document.getElementById('category').value;
+      const startOdo = document.getElementById('start-odo').value;
+      const endOdo = document.getElementById('end-odo').value;
+      const notes = document.getElementById('notes').value;
 
-    await saveTrip(category, startOdo, endOdo, notes);
-    
-    form.reset();
-    await renderTrips(); // Refresh UI view
-  });
+      // Save record to IndexedDB
+      await saveTrip(category, startOdo, endOdo, notes);
+      
+      // Reset form controls
+      form.reset();
+
+      // Refresh trip list, category summary, and pre-fill next start odometer
+      await refreshAppUI();
+      await updateNextStartOdometer();
+    });
+  }
+
+  // 2. Single Trip Delete Handler (Event Delegation on #trip-list)
+  const tripList = document.getElementById('trip-list');
+  if (tripList) {
+    tripList.addEventListener('click', async (e) => {
+      if (e.target && e.target.classList.contains('btn-delete-single')) {
+        e.stopPropagation(); // Stop event bubbling
+        const tripId = e.target.getAttribute('data-id');
+
+        if (confirm('Are you sure you want to delete this trip record?')) {
+          await deleteTripById(tripId);
+          await refreshAppUI();
+          await updateNextStartOdometer(); // Adjust odometer if latest trip was removed
+        }
+      }
+    });
+  }
+
+  // 3. Clear All Data Handler
+  const clearBtn = document.getElementById('clear-all-btn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', async () => {
+      if (confirm('WARNING: This will permanently delete ALL logged trips. Continue?')) {
+        await clearAllTrips();
+        await refreshAppUI();
+        await updateNextStartOdometer();
+      }
+    });
+  }
+
+  // 4. CSV Export Handler
+  const exportBtn = document.getElementById('export-csv-btn');
+  if (exportBtn && typeof exportTripsToCSV === 'function') {
+    exportBtn.addEventListener('click', exportTripsToCSV);
+  }
 });

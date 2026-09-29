@@ -1,37 +1,22 @@
-// Function to aggregate miles grouped by category
 async function getMileageSummaryByCategory() {
-  const db = await openDB(); // Uses openDB() function from previous examples
-
+  const db = await openDB();
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], 'readonly');
     const store = transaction.objectStore(STORE_NAME);
-    
-    // Accumulator object: { "DoorDash": 120.5, "Home Business": 45.2 }
     const summary = {};
 
-    // Open a cursor to iterate over all stored trips
     const request = store.openCursor();
 
     request.onsuccess = (event) => {
       const cursor = event.target.result;
-
       if (cursor) {
         const trip = cursor.value;
         const category = trip.category || 'Uncategorized';
         const miles = Number(trip.calculatedMiles) || 0;
 
-        // Initialize category sum if it doesn't exist yet
-        if (!summary[category]) {
-          summary[category] = 0;
-        }
-
-        // Add to total for this category
-        summary[category] += miles;
-
-        // Advance to the next record in IndexedDB
+        summary[category] = (summary[category] || 0) + miles;
         cursor.continue();
       } else {
-        // Cursor reached the end of records; resolve summary
         resolve(summary);
       }
     };
@@ -40,9 +25,10 @@ async function getMileageSummaryByCategory() {
   });
 }
 
-// UI Handler to render category totals on screen
 async function renderMileageSummary() {
   const summaryContainer = document.getElementById('summary-list');
+  if (!summaryContainer) return;
+
   summaryContainer.innerHTML = '';
 
   try {
@@ -50,7 +36,7 @@ async function renderMileageSummary() {
     const categories = Object.keys(totalsByCategory);
 
     if (categories.length === 0) {
-      summaryContainer.innerHTML = '<li>No mileage data recorded yet.</li>';
+      summaryContainer.innerHTML = '<li class="summary-item">No mileage recorded yet.</li>';
       return;
     }
 
@@ -61,15 +47,20 @@ async function renderMileageSummary() {
       grandTotal += miles;
 
       const li = document.createElement('li');
-      // Format to 1 decimal place (e.g., 145.2 mi)
-      li.innerHTML = `<strong>${category}:</strong> ${miles.toFixed(1)} miles`;
+      li.className = 'summary-item';
+      li.innerHTML = `
+        <span><strong>${category}</strong></span>
+        <span>${miles.toFixed(1)} mi</span>
+      `;
       summaryContainer.appendChild(li);
     });
 
-    // Add Grand Total row at the bottom
     const totalLi = document.createElement('li');
-    totalLi.style.marginTop = '8px';
-    totalLi.innerHTML = `<strong>Grand Total:</strong> ${grandTotal.toFixed(1)} miles`;
+    totalLi.className = 'summary-item';
+    totalLi.innerHTML = `
+      <span><strong>Grand Total</strong></span>
+      <span><strong>${grandTotal.toFixed(1)} mi</strong></span>
+    `;
     summaryContainer.appendChild(totalLi);
 
   } catch (error) {
